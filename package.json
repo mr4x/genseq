@@ -1,0 +1,17 @@
+{
+    "name": "genseq",
+    "version": "2022.3.17",
+    "private": true,
+    "scripts": {
+        "fmt": "prettier --write .",
+        "dev": "esbuild src/index.js --bundle --watch --sourcemap --define:DEBUG=true --outfile=docs/bundle.js",
+        "build": "esbuild src/index.js --bundle --minify --define:DEBUG=false --outfile=docs/bundle.js"
+    },
+    "devDependencies": {
+        "esbuild": "^0.14.27",
+        "prettier": "^2.6.0"
+    },
+    "dependencies": {
+        "frappe-charts": "^1.6.2"
+    }
+}

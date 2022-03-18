@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width,initial-scale=1" name="viewport" />
+        <title>Генератор последовательностей</title>
+        <link rel="preload" href="fonts/72-Regular.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="icon" type="image/png" href="icon-32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="icon-16.png" sizes="16x16" />
+        <style>
+            @font-face {
+                font-family: '72';
+                font-style: normal;
+                font-weight: 400;
+                src: url('fonts/72-Regular.woff2') format('woff2'), url('fonts/72-Regular.woff') format('woff');
+                font-display: swap;
+            }
+
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+
+            body {
+                font: 14px/1.5 '72', sans-serif;
+            }
+
+            table {
+                font-size: 12px;
+                border-collapse: collapse;
+            }
+
+            th,
+            td {
+                border: 1px solid #000;
+                text-align: center;
+                padding: 2px 4px;
+            }
+
+            .controls {
+                margin-bottom: 8px;
+            }
+
+            .flex {
+                display: flex;
+                margin-bottom: 16px;
+            }
+
+            .flex table {
+                margin: 0 16px;
+                width: 420px;
+            }
+
+            .chart {
+                width: 400px;
+            }
+
+            select {
+                font: inherit;
+            }
+
+            .chart-container {
+                position: relative;
+            }
+            .chart-container .axis,
+            .chart-container .chart-label {
+                fill: #555b51;
+            }
+            .chart-container .axis line,
+            .chart-container .chart-label line {
+                stroke: #dadada;
+            }
+            .chart-container .dataset-units circle {
+                stroke: #fff;
+                stroke-width: 2;
+            }
+            .chart-container .dataset-units path {
+                fill: none;
+                stroke-opacity: 1;
+                stroke-width: 2px;
+            }
+            .chart-container .dataset-path {
+                stroke-width: 2px;
+            }
+            .chart-container .path-group path {
+                fill: none;
+                stroke-opacity: 1;
+                stroke-width: 2px;
+            }
+            .chart-container line.dashed {
+                stroke-dasharray: 5, 3;
+            }
+            .chart-container .axis-line .specific-value {
+                text-anchor: start;
+            }
+            .chart-container .axis-line .y-line {
+                text-anchor: end;
+            }
+            .chart-container .axis-line .x-line {
+                text-anchor: middle;
+            }
+            .chart-container .legend-dataset-text {
+                fill: #6c7680;
+                font-weight: 700;
+            }
+            .graph-svg-tip {
+                position: absolute;
+                z-index: 99999;
+                padding: 10px;
+                font-size: 12px;
+                color: #959da5;
+                text-align: center;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 3px;
+            }
+            .graph-svg-tip ul {
+                padding-left: 0;
+                display: flex;
+            }
+            .graph-svg-tip ol {
+                padding-left: 0;
+                display: flex;
+            }
+            .graph-svg-tip ul.data-point-list li {
+                min-width: 90px;
+                flex: 1;
+                font-weight: 700;
+            }
+            .graph-svg-tip strong {
+                color: #dfe2e5;
+                font-weight: 700;
+            }
+            .graph-svg-tip .svg-pointer {
+                position: absolute;
+                height: 5px;
+                margin: 0 0 0 -5px;
+                content: ' ';
+                border: 5px solid transparent;
+                border-top-color: rgba(0, 0, 0, 0.8);
+            }
+            .graph-svg-tip.comparison {
+                padding: 0;
+                text-align: left;
+                pointer-events: none;
+            }
+            .graph-svg-tip.comparison .title {
+                display: block;
+                padding: 10px;
+                margin: 0;
+                font-weight: 700;
+                line-height: 1;
+                pointer-events: none;
+            }
+            .graph-svg-tip.comparison ul {
+                margin: 0;
+                white-space: nowrap;
+                list-style: none;
+            }
+            .graph-svg-tip.comparison li {
+                display: inline-block;
+                padding: 5px 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="controls">
+            <select id="variant">
+                <option value="0">Вариант 1</option>
+                <option value="1">Вариант 6</option>
+                <option value="2">Вариант 8</option>
+            </select>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>a</th>
+                    <th>b</th>
+                    <th>&lambda;</th>
+                    <th>&mu;</th>
+                    <th>&sigma;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="a"></td>
+                    <td id="b"></td>
+                    <td id="A"></td>
+                    <td id="u"></td>
+                    <td id="o"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="flex">
+            <div id="u1000" class="chart"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>10</th>
+                        <th>20</th>
+                        <th>50</th>
+                        <th>100</th>
+                        <th>1,000</th>
+                    </tr>
+                </thead>
+                <tbody id="uTable"></tbody>
+            </table>
+            <div id="uStats" class="chart"></div>
+        </div>
+        <div class="flex">
+            <div id="b1000" class="chart"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>10</th>
+                        <th>20</th>
+                        <th>50</th>
+                        <th>100</th>
+                        <th>1,000</th>
+                    </tr>
+                </thead>
+                <tbody id="bTable"></tbody>
+            </table>
+            <div id="bStats" class="chart"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>&alpha;</th>
+                        <th>K<sub>&alpha;</sub></th>
+                        <th>K-S</th>
+                        <th>H<sub>0</sub></th>
+                    </tr>
+                </thead>
+                <tbody id="bTest"></tbody>
+            </table>
+        </div>
+        <div class="flex">
+            <div id="n1000" class="chart"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>10</th>
+                        <th>20</th>
+                        <th>50</th>
+                        <th>100</th>
+                        <th>1,000</th>
+                    </tr>
+                </thead>
+                <tbody id="nTable"></tbody>
+            </table>
+            <div id="nStats" class="chart"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>&alpha;</th>
+                        <th>K<sub>&alpha;</sub></th>
+                        <th>K-S</th>
+                        <th>H<sub>0</sub></th>
+                    </tr>
+                </thead>
+                <tbody id="nTest"></tbody>
+            </table>
+        </div>
+        <div class="flex">
+            <div id="e1000" class="chart"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>10</th>
+                        <th>20</th>
+                        <th>50</th>
+                        <th>100</th>
+                        <th>1,000</th>
+                    </tr>
+                </thead>
+                <tbody id="eTable"></tbody>
+            </table>
+            <div id="eStats" class="chart"></div>
+        </div>
+        <script src="bundle.js"></script>
+    </body>
+</html>
